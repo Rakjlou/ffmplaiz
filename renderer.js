@@ -17,6 +17,10 @@ const progressText = document.getElementById('progressText');
 const progressContainer = document.getElementById('progressContainer');
 const progressFill = document.getElementById('progressFill');
 const duplicateWarning = document.getElementById('duplicateWarning');
+const consoleToggle = document.getElementById('consoleToggle');
+const consoleToggleIcon = document.getElementById('consoleToggleIcon');
+const consoleOutput = document.getElementById('consoleOutput');
+const consoleContent = document.getElementById('consoleContent');
 
 // Application state
 let ffmpegAvailable = false;
@@ -26,6 +30,8 @@ let outputPath = ''; // Selected output folder
 let isProcessing = false;
 let processingQueue = []; // Files to process (after duplicate removal)
 let currentProcessIndex = 0;
+let consoleExpanded = false;
+let processingResults = []; // Track success/failure for each file
 
 // Initialize on page load
 async function init() {
@@ -34,6 +40,7 @@ async function init() {
   await loadSettings();
   setupDragAndDrop();
   setupButtons();
+  setupConsole();
 }
 
 // ============================================================
@@ -277,6 +284,10 @@ function startProcessing() {
   processingQueue = unique;
   currentProcessIndex = 0;
   isProcessing = true;
+  processingResults = [];
+
+  // Clear console for new session
+  clearConsole();
 
   // Update UI
   startBtn.disabled = true;
@@ -302,7 +313,25 @@ function finishProcessing(wasStopped = false) {
 
   if (wasStopped) {
     progressText.textContent = 'Stopped';
+    appendToConsole('\n=== Processing stopped by user ===\n', 'stderr');
+  } else {
+    // Show summary
+    const successCount = processingResults.filter(r => r.success).length;
+    const failCount = processingResults.filter(r => !r.success).length;
+    const total = processingResults.length;
+
+    progressText.textContent = `Done: ${successCount}/${total} succeeded`;
+
+    appendToConsole(`\n=== Processing Complete ===\n`, 'stdout');
+    appendToConsole(`Success: ${successCount} | Failed: ${failCount}\n`, successCount === total ? 'stdout' : 'stderr');
+
+    if (failCount > 0) {
+      const failedFiles = processingResults.filter(r => !r.success).map(r => r.file.name);
+      appendToConsole(`Failed files: ${failedFiles.join(', ')}\n`, 'stderr');
+    }
   }
+
+  updateStartButton();
 }
 
 function updateProgress() {
@@ -323,16 +352,33 @@ async function processNextFile() {
   const commandIndex = parseInt(commandSelect.value, 10);
   const command = commands[commandIndex];
 
+  // Show which file is being processed
+  appendToConsole(`\n=== Processing: ${file.name} ===\n`, 'stdout');
+
   // Build the command with placeholders replaced
   const finalCommand = substitutePlaceholders(command.command, file);
 
-  // Execute the command (Phase 7 will implement actual FFmpeg execution)
+  // Log the command for debugging
+  appendToConsole(`Command: ${finalCommand}\n\n`, 'stdout');
+
+  // Execute the command
   const result = await window.api.executeCommand(finalCommand);
+
+  // Track result
+  processingResults.push({
+    file: file,
+    success: result.success,
+    exitCode: result.exitCode
+  });
+
+  if (!result.success) {
+    appendToConsole(`\n[FAILED] Exit code: ${result.exitCode}\n`, 'stderr');
+  }
 
   currentProcessIndex++;
   updateProgress();
 
-  // Continue to next file
+  // Continue to next file (even if this one failed)
   if (isProcessing) {
     processNextFile();
   }
@@ -346,12 +392,60 @@ function substitutePlaceholders(commandTemplate, file) {
   const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
   const ext = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
 
+  // Convert Windows backslashes to forward slashes for FFmpeg compatibility
+  // FFmpeg handles forward slashes fine on Windows, and this avoids escaping issues
+  const inputPath = fullPath.replace(/\\/g, '/');
+  const outputDir = outputPath.replace(/\\/g, '/');
+
   // Replace placeholders
   return commandTemplate
-    .replace(/\{input\}/g, fullPath)
-    .replace(/\{output_dir\}/g, outputPath)
+    .replace(/\{input\}/g, inputPath)
+    .replace(/\{output_dir\}/g, outputDir)
     .replace(/\{name\}/g, nameWithoutExt)
     .replace(/\{ext\}/g, ext);
+}
+
+// ============================================================
+// Console Output
+// ============================================================
+function setupConsole() {
+  // Set up toggle
+  consoleToggle.addEventListener('click', toggleConsole);
+
+  // Set up FFmpeg output listener
+  window.api.onFfmpegOutput((data) => {
+    appendToConsole(data.data, data.type);
+  });
+}
+
+function toggleConsole() {
+  consoleExpanded = !consoleExpanded;
+  if (consoleExpanded) {
+    consoleOutput.classList.remove('hidden');
+    consoleToggleIcon.classList.add('expanded');
+  } else {
+    consoleOutput.classList.add('hidden');
+    consoleToggleIcon.classList.remove('expanded');
+  }
+}
+
+function clearConsole() {
+  consoleContent.innerHTML = '';
+}
+
+function appendToConsole(text, type = 'stdout') {
+  const span = document.createElement('span');
+  span.className = type;
+  span.textContent = text;
+  consoleContent.appendChild(span);
+
+  // Auto-scroll to bottom
+  consoleOutput.scrollTop = consoleOutput.scrollHeight;
+
+  // Auto-expand console when output arrives
+  if (!consoleExpanded) {
+    toggleConsole();
+  }
 }
 
 // ============================================================

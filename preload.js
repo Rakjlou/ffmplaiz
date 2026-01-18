@@ -19,5 +19,11 @@ contextBridge.exposeInMainWorld('api', {
 
   // Processing
   executeCommand: (command) => ipcRenderer.invoke('execute-command', command),
-  stopProcessing: () => ipcRenderer.invoke('stop-processing')
+  stopProcessing: () => ipcRenderer.invoke('stop-processing'),
+  onFfmpegOutput: (callback) => {
+    ipcRenderer.on('ffmpeg-output', (event, data) => callback(data));
+  },
+  removeFfmpegOutputListener: () => {
+    ipcRenderer.removeAllListeners('ffmpeg-output');
+  }
 });

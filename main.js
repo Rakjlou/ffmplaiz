@@ -129,16 +129,72 @@ ipcMain.handle('select-output-folder', async () => {
 });
 
 // ============================================================
-// Processing (stub for Phase 6, full implementation in Phase 7)
+// Processing
 // ============================================================
 ipcMain.handle('execute-command', async (event, command) => {
-  // Stub: will be implemented in Phase 7
-  return { success: true, exitCode: 0 };
+  return new Promise((resolve) => {
+    // Use shell: true to let Node.js handle shell invocation properly
+    // This avoids quote/escaping issues with cmd /c on Windows
+    const proc = spawn(command, [], {
+      shell: true,
+      windowsHide: true
+    });
+
+    currentProcess = proc;
+
+    // Stream stdout to renderer
+    proc.stdout.on('data', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('ffmpeg-output', {
+          type: 'stdout',
+          data: data.toString()
+        });
+      }
+    });
+
+    // Stream stderr to renderer (FFmpeg outputs progress to stderr)
+    proc.stderr.on('data', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('ffmpeg-output', {
+          type: 'stderr',
+          data: data.toString()
+        });
+      }
+    });
+
+    proc.on('close', (code) => {
+      currentProcess = null;
+      resolve({
+        success: code === 0,
+        exitCode: code
+      });
+    });
+
+    proc.on('error', (err) => {
+      currentProcess = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('ffmpeg-output', {
+          type: 'stderr',
+          data: `Error: ${err.message}\n`
+        });
+      }
+      resolve({
+        success: false,
+        exitCode: -1,
+        error: err.message
+      });
+    });
+  });
 });
 
 ipcMain.handle('stop-processing', () => {
   if (currentProcess) {
-    currentProcess.kill();
+    // On Windows, we need to kill the process tree
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', currentProcess.pid, '/f', '/t']);
+    } else {
+      currentProcess.kill('SIGTERM');
+    }
     currentProcess = null;
   }
   return true;
