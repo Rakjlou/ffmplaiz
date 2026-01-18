@@ -1,10 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { execFile, spawn } = require('child_process');
 
 let mainWindow;
 let currentProcess = null; // Current FFmpeg process
+let sessionLogPath = null; // Current session log file path
 
 // ============================================================
 // Config Module - Simple JSON persistence
@@ -198,6 +199,51 @@ ipcMain.handle('stop-processing', () => {
     currentProcess = null;
   }
   return true;
+});
+
+// ============================================================
+// Session Logging
+// ============================================================
+ipcMain.handle('start-session-log', () => {
+  // Create a new session log file in temp directory
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  sessionLogPath = path.join(app.getPath('temp'), `wrapfmpeg_session_${timestamp}.txt`);
+
+  // Write header
+  const header = `WrapFmpeg Session Log\nStarted: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
+  fs.writeFileSync(sessionLogPath, header, 'utf-8');
+
+  return sessionLogPath;
+});
+
+ipcMain.handle('append-to-log', (event, text) => {
+  if (sessionLogPath) {
+    fs.appendFileSync(sessionLogPath, text, 'utf-8');
+  }
+  return true;
+});
+
+ipcMain.handle('get-session-log-path', () => {
+  return sessionLogPath;
+});
+
+// ============================================================
+// Shell Operations (open folder/file)
+// ============================================================
+ipcMain.handle('open-folder', async (event, folderPath) => {
+  if (folderPath && fs.existsSync(folderPath)) {
+    await shell.openPath(folderPath);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('open-file', async (event, filePath) => {
+  if (filePath && fs.existsSync(filePath)) {
+    await shell.openPath(filePath);
+    return true;
+  }
+  return false;
 });
 
 // ============================================================

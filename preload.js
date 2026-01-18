@@ -25,5 +25,14 @@ contextBridge.exposeInMainWorld('api', {
   },
   removeFfmpegOutputListener: () => {
     ipcRenderer.removeAllListeners('ffmpeg-output');
-  }
+  },
+
+  // Session logging
+  startSessionLog: () => ipcRenderer.invoke('start-session-log'),
+  appendToLog: (text) => ipcRenderer.invoke('append-to-log', text),
+  getSessionLogPath: () => ipcRenderer.invoke('get-session-log-path'),
+
+  // Shell operations
+  openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
+  openFile: (filePath) => ipcRenderer.invoke('open-file', filePath)
 });

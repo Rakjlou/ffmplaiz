@@ -415,3 +415,34 @@ h2 {
 .console-output .stdout {
   color: #89d185;
 }
+
+/* Result Zone */
+.result-zone {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+}
+
+.result-summary {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.result-summary.success {
+  color: #89d185;
+}
+
+.result-summary.partial {
+  color: #cca700;
+}
+
+.result-summary.failure {
+  color: #f48771;
+}
+
+.result-buttons {
+  display: flex;
+  gap: 10px;
+}

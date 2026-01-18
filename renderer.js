@@ -21,6 +21,10 @@ const consoleToggle = document.getElementById('consoleToggle');
 const consoleToggleIcon = document.getElementById('consoleToggleIcon');
 const consoleOutput = document.getElementById('consoleOutput');
 const consoleContent = document.getElementById('consoleContent');
+const resultZone = document.getElementById('resultZone');
+const resultSummary = document.getElementById('resultSummary');
+const openOutputFolderBtn = document.getElementById('openOutputFolderBtn');
+const openSessionLogBtn = document.getElementById('openSessionLogBtn');
 
 // Application state
 let ffmpegAvailable = false;
@@ -32,6 +36,7 @@ let processingQueue = []; // Files to process (after duplicate removal)
 let currentProcessIndex = 0;
 let consoleExpanded = false;
 let processingResults = []; // Track success/failure for each file
+let sessionLogPath = null; // Path to current session log
 
 // Initialize on page load
 async function init() {
@@ -289,6 +294,12 @@ function startProcessing() {
   // Clear console for new session
   clearConsole();
 
+  // Hide result zone from previous session
+  resultZone.classList.add('hidden');
+
+  // Start session log
+  startSessionLog();
+
   // Update UI
   startBtn.disabled = true;
   stopBtn.disabled = false;
@@ -297,6 +308,10 @@ function startProcessing() {
 
   // Start processing
   processNextFile();
+}
+
+async function startSessionLog() {
+  sessionLogPath = await window.api.startSessionLog();
 }
 
 function stopProcessing() {
@@ -311,15 +326,14 @@ function finishProcessing(wasStopped = false) {
   startBtn.disabled = false;
   stopBtn.disabled = true;
 
+  const successCount = processingResults.filter(r => r.success).length;
+  const failCount = processingResults.filter(r => !r.success).length;
+  const total = processingResults.length;
+
   if (wasStopped) {
     progressText.textContent = 'Stopped';
     appendToConsole('\n=== Processing stopped by user ===\n', 'stderr');
   } else {
-    // Show summary
-    const successCount = processingResults.filter(r => r.success).length;
-    const failCount = processingResults.filter(r => !r.success).length;
-    const total = processingResults.length;
-
     progressText.textContent = `Done: ${successCount}/${total} succeeded`;
 
     appendToConsole(`\n=== Processing Complete ===\n`, 'stdout');
@@ -331,7 +345,29 @@ function finishProcessing(wasStopped = false) {
     }
   }
 
+  // Show result zone
+  showResultZone(successCount, failCount, total, wasStopped);
+
   updateStartButton();
+}
+
+function showResultZone(successCount, failCount, total, wasStopped) {
+  // Set summary text and style
+  if (wasStopped) {
+    resultSummary.textContent = `Processing stopped. ${successCount}/${total} files completed successfully.`;
+    resultSummary.className = 'result-summary partial';
+  } else if (failCount === 0) {
+    resultSummary.textContent = `All ${total} file(s) processed successfully!`;
+    resultSummary.className = 'result-summary success';
+  } else if (successCount === 0) {
+    resultSummary.textContent = `All ${total} file(s) failed.`;
+    resultSummary.className = 'result-summary failure';
+  } else {
+    resultSummary.textContent = `${successCount} succeeded, ${failCount} failed.`;
+    resultSummary.className = 'result-summary partial';
+  }
+
+  resultZone.classList.remove('hidden');
 }
 
 function updateProgress() {
@@ -446,6 +482,11 @@ function appendToConsole(text, type = 'stdout') {
   if (!consoleExpanded) {
     toggleConsole();
   }
+
+  // Also append to session log file
+  if (sessionLogPath) {
+    window.api.appendToLog(text);
+  }
 }
 
 // ============================================================
@@ -458,8 +499,25 @@ function setupButtons() {
   startBtn.addEventListener('click', startProcessing);
   stopBtn.addEventListener('click', stopProcessing);
 
+  // Result zone buttons
+  openOutputFolderBtn.addEventListener('click', openOutputFolder);
+  openSessionLogBtn.addEventListener('click', openSessionLog);
+
   // Update start button when command or output changes
   commandSelect.addEventListener('change', updateStartButton);
+}
+
+async function openOutputFolder() {
+  if (outputPath) {
+    await window.api.openFolder(outputPath);
+  }
+}
+
+async function openSessionLog() {
+  const logPath = await window.api.getSessionLogPath();
+  if (logPath) {
+    await window.api.openFile(logPath);
+  }
 }
 
 // ============================================================
