@@ -207,10 +207,10 @@ ipcMain.handle('stop-processing', () => {
 ipcMain.handle('start-session-log', () => {
   // Create a new session log file in temp directory
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  sessionLogPath = path.join(app.getPath('temp'), `wrapfmpeg_session_${timestamp}.txt`);
+  sessionLogPath = path.join(app.getPath('temp'), `ffmplaiz_session_${timestamp}.txt`);
 
   // Write header
-  const header = `WrapFmpeg Session Log\nStarted: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
+  const header = `ffmplaiz Session Log\nStarted: ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
   fs.writeFileSync(sessionLogPath, header, 'utf-8');
 
   return sessionLogPath;

@@ -1,7 +1,7 @@
 {
-  "name": "wrapfmpeg",
+  "name": "ffmplaiz",
   "version": "1.0.0",
-  "description": "FFmpeg Wrapper GUI - A simple graphical interface for FFmpeg commands",
+  "description": "ffmplaiz - A simple graphical interface for FFmpeg commands",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -20,8 +20,8 @@
     "electron-builder": "^26.4.0"
   },
   "build": {
-    "appId": "com.wrapfmpeg.app",
-    "productName": "WrapFmpeg",
+    "appId": "com.ffmplaiz.app",
+    "productName": "ffmplaiz",
     "win": {
       "target": "portable",
       "icon": null
