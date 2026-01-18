@@ -294,16 +294,16 @@ h2 {
 }
 
 .btn-primary {
-  background-color: #0e639c;
+  background-color: #2d7d2d;
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  background-color: #1177bb;
+  background-color: #3a9a3a;
 }
 
 .btn-primary:disabled {
-  background-color: #0e639c;
+  background-color: #2d7d2d;
   opacity: 0.5;
   cursor: not-allowed;
 }
