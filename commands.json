@@ -1,0 +1,20 @@
+{
+  "commands": [
+    {
+      "name": "Sanity Check (No output)",
+      "command": "ffmpeg -v error -i \"{input}\" -f null -"
+    },
+    {
+      "name": "Convert to 720p MP4",
+      "command": "ffmpeg -i \"{input}\" -vf scale=-1:720 \"{output_dir}\\{name}.mp4\""
+    },
+    {
+      "name": "Extract Frames (PNG)",
+      "command": "ffmpeg -i \"{input}\" \"{output_dir}\\{name}_%04d.png\""
+    },
+    {
+      "name": "Remux to MKV (Copy stream)",
+      "command": "ffmpeg -i \"{input}\" -c copy \"{output_dir}\\{name}.mkv\""
+    }
+  ]
+}

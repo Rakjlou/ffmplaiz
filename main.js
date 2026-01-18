@@ -42,6 +42,40 @@ function setSetting(key, value) {
 }
 
 // ============================================================
+// Commands Loading
+// ============================================================
+function getCommandsPath() {
+  // In development: use app directory
+  // In production: use resourcesPath (next to executable)
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'commands.json');
+  }
+  return path.join(__dirname, 'commands.json');
+}
+
+function loadCommands() {
+  const commandsPath = getCommandsPath();
+  try {
+    if (!fs.existsSync(commandsPath)) {
+      return { success: false, error: `Commands file not found: ${commandsPath}` };
+    }
+    const data = fs.readFileSync(commandsPath, 'utf-8');
+    const parsed = JSON.parse(data);
+
+    if (!parsed.commands || !Array.isArray(parsed.commands)) {
+      return { success: false, error: 'Invalid commands.json: missing "commands" array' };
+    }
+
+    return { success: true, commands: parsed.commands };
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      return { success: false, error: `Invalid JSON syntax: ${err.message}` };
+    }
+    return { success: false, error: `Error loading commands: ${err.message}` };
+  }
+}
+
+// ============================================================
 // FFmpeg Detection
 // ============================================================
 function checkFfmpeg() {
@@ -72,6 +106,10 @@ ipcMain.handle('get-settings', () => {
 ipcMain.handle('set-setting', (event, key, value) => {
   setSetting(key, value);
   return true;
+});
+
+ipcMain.handle('load-commands', () => {
+  return loadCommands();
 });
 
 // ============================================================

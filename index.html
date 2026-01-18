@@ -43,6 +43,18 @@
         <div class="file-list-empty">No files added yet</div>
       </div>
     </div>
+
+    <!-- Command Selection -->
+    <div class="section">
+      <h2>Command</h2>
+      <div id="commandError" class="command-error hidden"></div>
+      <div class="command-row">
+        <select id="commandSelect" class="command-select" disabled>
+          <option value="">Loading commands...</option>
+        </select>
+        <button id="refreshCommandsBtn" class="btn btn-secondary">Refresh</button>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>

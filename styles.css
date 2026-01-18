@@ -221,3 +221,40 @@ h2 {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Command Selection */
+.command-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.command-select {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 14px;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  color: #d4d4d4;
+  cursor: pointer;
+}
+
+.command-select:hover {
+  border-color: #569cd6;
+}
+
+.command-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.command-error {
+  background-color: #5a2d2d;
+  border: 1px solid #cf6c6c;
+  color: #ff9999;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}

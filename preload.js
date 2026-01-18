@@ -9,5 +9,8 @@ contextBridge.exposeInMainWorld('api', {
   setSetting: (key, value) => ipcRenderer.invoke('set-setting', key, value),
 
   // File utilities (Electron 32+ requires webUtils for file paths)
-  getPathForFile: (file) => webUtils.getPathForFile(file)
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+
+  // Commands
+  loadCommands: () => ipcRenderer.invoke('load-commands')
 });

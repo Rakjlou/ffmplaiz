@@ -6,14 +6,19 @@ const dropZone = document.getElementById('dropZone');
 const fileList = document.getElementById('fileList');
 const fileCount = document.getElementById('fileCount');
 const clearAllBtn = document.getElementById('clearAllBtn');
+const commandSelect = document.getElementById('commandSelect');
+const commandError = document.getElementById('commandError');
+const refreshCommandsBtn = document.getElementById('refreshCommandsBtn');
 
 // Application state
 let ffmpegAvailable = false;
 let files = []; // Array of { path, name }
+let commands = []; // Array of { name, command }
 
 // Initialize on page load
 async function init() {
   await checkFfmpegStatus();
+  await loadCommands();
   setupDragAndDrop();
   setupButtons();
 }
@@ -36,6 +41,38 @@ async function checkFfmpegStatus() {
     errorBanner.classList.remove('hidden');
     mainContent.classList.add('disabled');
   }
+}
+
+// ============================================================
+// Commands Loading
+// ============================================================
+async function loadCommands() {
+  const result = await window.api.loadCommands();
+
+  if (result.success) {
+    commands = result.commands;
+    commandError.classList.add('hidden');
+    renderCommandDropdown();
+  } else {
+    commands = [];
+    commandError.textContent = result.error;
+    commandError.classList.remove('hidden');
+    commandSelect.innerHTML = '<option value="">No commands available</option>';
+    commandSelect.disabled = true;
+  }
+}
+
+function renderCommandDropdown() {
+  if (commands.length === 0) {
+    commandSelect.innerHTML = '<option value="">No commands defined</option>';
+    commandSelect.disabled = true;
+    return;
+  }
+
+  commandSelect.innerHTML = commands.map((cmd, index) =>
+    `<option value="${index}">${escapeHtml(cmd.name)}</option>`
+  ).join('');
+  commandSelect.disabled = false;
 }
 
 // ============================================================
@@ -150,6 +187,7 @@ function renderFileList() {
 // ============================================================
 function setupButtons() {
   clearAllBtn.addEventListener('click', clearAllFiles);
+  refreshCommandsBtn.addEventListener('click', loadCommands);
 }
 
 // ============================================================
