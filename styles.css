@@ -258,3 +258,29 @@ h2 {
   margin-bottom: 10px;
   font-size: 13px;
 }
+
+/* Output Folder */
+.output-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.output-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 14px;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  color: #d4d4d4;
+  cursor: pointer;
+}
+
+.output-input:hover {
+  border-color: #569cd6;
+}
+
+.output-input::placeholder {
+  color: #606060;
+}

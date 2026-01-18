@@ -9,16 +9,20 @@ const clearAllBtn = document.getElementById('clearAllBtn');
 const commandSelect = document.getElementById('commandSelect');
 const commandError = document.getElementById('commandError');
 const refreshCommandsBtn = document.getElementById('refreshCommandsBtn');
+const outputFolder = document.getElementById('outputFolder');
+const browseOutputBtn = document.getElementById('browseOutputBtn');
 
 // Application state
 let ffmpegAvailable = false;
 let files = []; // Array of { path, name }
 let commands = []; // Array of { name, command }
+let outputPath = ''; // Selected output folder
 
 // Initialize on page load
 async function init() {
   await checkFfmpegStatus();
   await loadCommands();
+  await loadSettings();
   setupDragAndDrop();
   setupButtons();
 }
@@ -73,6 +77,25 @@ function renderCommandDropdown() {
     `<option value="${index}">${escapeHtml(cmd.name)}</option>`
   ).join('');
   commandSelect.disabled = false;
+}
+
+// ============================================================
+// Settings & Output Folder
+// ============================================================
+async function loadSettings() {
+  const settings = await window.api.getSettings();
+  if (settings.lastOutputDirectory) {
+    outputPath = settings.lastOutputDirectory;
+    outputFolder.value = outputPath;
+  }
+}
+
+async function selectOutputFolder() {
+  const result = await window.api.selectOutputFolder();
+  if (result.selected) {
+    outputPath = result.path;
+    outputFolder.value = outputPath;
+  }
 }
 
 // ============================================================
@@ -188,6 +211,7 @@ function renderFileList() {
 function setupButtons() {
   clearAllBtn.addEventListener('click', clearAllFiles);
   refreshCommandsBtn.addEventListener('click', loadCommands);
+  browseOutputBtn.addEventListener('click', selectOutputFolder);
 }
 
 // ============================================================

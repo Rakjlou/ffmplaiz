@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
@@ -110,6 +110,21 @@ ipcMain.handle('set-setting', (event, key, value) => {
 
 ipcMain.handle('load-commands', () => {
   return loadCommands();
+});
+
+ipcMain.handle('select-output-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+    title: 'Select Output Folder'
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return { selected: false };
+  }
+
+  const folderPath = result.filePaths[0];
+  setSetting('lastOutputDirectory', folderPath);
+  return { selected: true, path: folderPath };
 });
 
 // ============================================================

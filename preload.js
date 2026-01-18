@@ -12,5 +12,8 @@ contextBridge.exposeInMainWorld('api', {
   getPathForFile: (file) => webUtils.getPathForFile(file),
 
   // Commands
-  loadCommands: () => ipcRenderer.invoke('load-commands')
+  loadCommands: () => ipcRenderer.invoke('load-commands'),
+
+  // Output folder
+  selectOutputFolder: () => ipcRenderer.invoke('select-output-folder')
 });
