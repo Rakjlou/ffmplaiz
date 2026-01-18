@@ -64,6 +64,22 @@
         <button id="browseOutputBtn" class="btn btn-secondary">Browse</button>
       </div>
     </div>
+
+    <!-- Processing Zone -->
+    <div class="section">
+      <h2>Processing</h2>
+      <div id="duplicateWarning" class="warning-banner hidden"></div>
+      <div class="processing-controls">
+        <button id="startBtn" class="btn btn-primary" disabled>Start</button>
+        <button id="stopBtn" class="btn btn-danger" disabled>Stop</button>
+        <span id="progressText" class="progress-text"></span>
+      </div>
+      <div class="progress-container hidden" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>

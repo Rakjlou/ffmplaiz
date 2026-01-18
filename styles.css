@@ -284,3 +284,77 @@ h2 {
 .output-input::placeholder {
   color: #606060;
 }
+
+/* Processing Zone */
+.processing-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn-primary {
+  background-color: #0e639c;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #1177bb;
+}
+
+.btn-primary:disabled {
+  background-color: #0e639c;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background-color: #c42b1c;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #d63d2e;
+}
+
+.btn-danger:disabled {
+  background-color: #c42b1c;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-text {
+  font-size: 13px;
+  color: #808080;
+  margin-left: 10px;
+}
+
+.progress-container {
+  margin-top: 10px;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #3c3c3c;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #0e639c;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* Warning Banner */
+.warning-banner {
+  background-color: #4d4000;
+  border: 1px solid #cca700;
+  color: #cca700;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}

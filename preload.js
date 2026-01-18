@@ -15,5 +15,9 @@ contextBridge.exposeInMainWorld('api', {
   loadCommands: () => ipcRenderer.invoke('load-commands'),
 
   // Output folder
-  selectOutputFolder: () => ipcRenderer.invoke('select-output-folder')
+  selectOutputFolder: () => ipcRenderer.invoke('select-output-folder'),
+
+  // Processing
+  executeCommand: (command) => ipcRenderer.invoke('execute-command', command),
+  stopProcessing: () => ipcRenderer.invoke('stop-processing')
 });

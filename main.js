@@ -1,9 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 
 let mainWindow;
+let currentProcess = null; // Current FFmpeg process
 
 // ============================================================
 // Config Module - Simple JSON persistence
@@ -125,6 +126,22 @@ ipcMain.handle('select-output-folder', async () => {
   const folderPath = result.filePaths[0];
   setSetting('lastOutputDirectory', folderPath);
   return { selected: true, path: folderPath };
+});
+
+// ============================================================
+// Processing (stub for Phase 6, full implementation in Phase 7)
+// ============================================================
+ipcMain.handle('execute-command', async (event, command) => {
+  // Stub: will be implemented in Phase 7
+  return { success: true, exitCode: 0 };
+});
+
+ipcMain.handle('stop-processing', () => {
+  if (currentProcess) {
+    currentProcess.kill();
+    currentProcess = null;
+  }
+  return true;
 });
 
 // ============================================================
