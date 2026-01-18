@@ -1,0 +1,15 @@
+{
+  "name": "wrapfmpeg",
+  "version": "1.0.0",
+  "description": "FFmpeg Wrapper GUI - A simple graphical interface for FFmpeg commands",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["ffmpeg", "video", "electron"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^40.0.0"
+  }
+}

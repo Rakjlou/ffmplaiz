@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>WrapFmpeg</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>
+    WrapFmpeg
+    <span id="ffmpegStatus" class="status-badge">Checking...</span>
+  </h1>
+
+  <div id="errorBanner" class="error-banner hidden">
+    <h3>FFmpeg Not Found</h3>
+    <p>FFmpeg must be installed and available in your system PATH.</p>
+    <p class="error-hint">
+      Download FFmpeg from <strong>ffmpeg.org</strong> and add it to your PATH environment variable.
+    </p>
+  </div>
+
+  <div id="mainContent" class="main-content">
+    <!-- Input Zone -->
+    <div class="section">
+      <h2>Input Files</h2>
+      <div id="dropZone" class="drop-zone">
+        <div class="drop-zone-text">
+          <strong>Drop files here</strong><br>
+          or click to browse
+        </div>
+      </div>
+    </div>
+
+    <!-- File List -->
+    <div class="section">
+      <div class="file-list-header">
+        <span id="fileCount" class="file-count">0 files selected</span>
+        <button id="clearAllBtn" class="btn btn-secondary" disabled>Clear All</button>
+      </div>
+      <div id="fileList" class="file-list">
+        <div class="file-list-empty">No files added yet</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
