@@ -5,16 +5,24 @@
       "command": "ffmpeg -v error -i \"{input}\" -f null -"
     },
     {
-      "name": "Convert to 720p MP4",
-      "command": "ffmpeg -i \"{input}\" -vf scale=-1:720 \"{output_dir}/{name}.mp4\""
+      "name": "Pixel vertical -> 720p",
+      "command": "for /f \"delims=\" %a in ('ffprobe -v error -show_entries stream^=color_space -of default^=noprint_wrappers^=1:nokey^=1 \"{input}\"') do @if /I \"%a\"==\"bt2020nc\" (ffmpeg -i \"{input}\" -vf \"scale=-2:720,colorspace=all=bt709:itrc=bt2020-10:iprimaries=bt2020:ispace=bt2020nc,format=yuv420p\" \"{output_dir}/{name}.mp4\" -y) else (ffmpeg -i \"{input}\" -vf \"scale=-2:720,format=yuv420p\" \"{output_dir}/{name}.mp4\" -y)"
     },
     {
       "name": "Extract Frames (PNG)",
       "command": "ffmpeg -i \"{input}\" \"{output_dir}/{name}_%04d.png\""
     },
     {
-      "name": "Remux to MKV (Copy stream)",
-      "command": "ffmpeg -i \"{input}\" -c copy \"{output_dir}/{name}.mkv\""
+      "name": "Extract Frames (JPG)",
+      "command": "ffmpeg -i \"{input}\" -q:v 1 \"{output_dir}/{name}_%04d.jpg\""
+    },
+    {
+      "name": "Convert image to JPG",
+      "command": "ffmpeg -i \"{input}\" \"{output_dir}/{name}.jpg\""
+    },
+    {
+      "name": "Convert image to PNG",
+      "command": "ffmpeg -i \"{input}\" \"{output_dir}/{name}.png\""
     }
   ]
 }
