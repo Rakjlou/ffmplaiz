@@ -4,12 +4,40 @@
   "description": "FFmpeg Wrapper GUI - A simple graphical interface for FFmpeg commands",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:dir": "electron-builder --win --dir"
   },
-  "keywords": ["ffmpeg", "video", "electron"],
+  "keywords": [
+    "ffmpeg",
+    "video",
+    "electron"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^40.0.0"
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0"
+  },
+  "build": {
+    "appId": "com.wrapfmpeg.app",
+    "productName": "WrapFmpeg",
+    "win": {
+      "target": "portable",
+      "icon": null
+    },
+    "extraResources": [
+      {
+        "from": "commands.json",
+        "to": "commands.json"
+      }
+    ],
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "styles.css"
+    ]
   }
 }
