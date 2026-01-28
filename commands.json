@@ -23,6 +23,14 @@
     {
       "name": "Convert image to PNG",
       "command": "ffmpeg -i \"{input}\" \"{output_dir}/{name}.png\""
+    },
+    {
+      "name": "Merge Videos (Same Format)",
+      "command": "ffmpeg -f concat -safe 0 -i \"{concat_file}\" -c copy \"{output_dir}/{all_output}\""
+    },
+    {
+      "name": "Merge Videos (Re-encode if needed)",
+      "command": "ffmpeg -f concat -safe 0 -i \"{concat_file}\" -c:v libx264 -c:a aac \"{output_dir}/{all_output}\""
     }
   ]
 }

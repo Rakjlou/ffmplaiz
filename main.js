@@ -228,6 +228,41 @@ ipcMain.handle('get-session-log-path', () => {
 });
 
 // ============================================================
+// Multi-File Operations
+// ============================================================
+ipcMain.handle('create-concat-file', async (event, files, timestamp) => {
+  try {
+    // Create concat file in temp directory
+    const concatPath = path.join(app.getPath('temp'), `ffmplaiz_concat_${timestamp}.txt`);
+
+    // Format: file 'path/to/video1.mp4'
+    // Escape single quotes in paths, use forward slashes
+    const lines = files.map(file => {
+      const filePath = file.path.replace(/\\/g, '/').replace(/'/g, "\\'");
+      return `file '${filePath}'`;
+    });
+
+    fs.writeFileSync(concatPath, lines.join('\n'), 'utf-8');
+    return concatPath;
+  } catch (err) {
+    console.error('Error creating concat file:', err);
+    return null;
+  }
+});
+
+ipcMain.handle('delete-concat-file', async (event, concatPath) => {
+  try {
+    if (concatPath && fs.existsSync(concatPath)) {
+      fs.unlinkSync(concatPath);
+    }
+    return true;
+  } catch (err) {
+    console.error('Error deleting concat file:', err);
+    return true; // Non-critical cleanup, return success anyway
+  }
+});
+
+// ============================================================
 // Shell Operations (open folder/file)
 // ============================================================
 ipcMain.handle('open-folder', async (event, folderPath) => {

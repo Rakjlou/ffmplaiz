@@ -34,5 +34,9 @@ contextBridge.exposeInMainWorld('api', {
 
   // Shell operations
   openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
-  openFile: (filePath) => ipcRenderer.invoke('open-file', filePath)
+  openFile: (filePath) => ipcRenderer.invoke('open-file', filePath),
+
+  // Multi-file operations
+  createConcatFile: (files, timestamp) => ipcRenderer.invoke('create-concat-file', files, timestamp),
+  deleteConcatFile: (concatPath) => ipcRenderer.invoke('delete-concat-file', concatPath)
 });

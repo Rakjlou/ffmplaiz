@@ -285,8 +285,34 @@ function startProcessing() {
     return;
   }
 
+  // Get selected command
+  const commandIndex = parseInt(commandSelect.value, 10);
+  const command = commands[commandIndex];
+
+  // Check if this is a multi-file command
+  const isMultiFile = isMultiFileCommand(command.command);
+
+  // Validate multi-file requirements
+  if (isMultiFile && unique.length < 2) {
+    duplicateWarning.innerHTML = `<strong>Warning:</strong> Multi-file command "${escapeHtml(command.name)}" requires at least 2 files. You have ${unique.length}.`;
+    duplicateWarning.classList.remove('hidden');
+    progressText.textContent = 'Insufficient files for multi-file operation';
+    return;
+  }
+
   // Set up processing queue
-  processingQueue = unique;
+  if (isMultiFile) {
+    // For multi-file commands, create a single operation item wrapping all files
+    processingQueue = [{
+      isMultiFileOperation: true,
+      files: unique,
+      commandName: command.name
+    }];
+  } else {
+    // For normal commands, process each file individually
+    processingQueue = unique;
+  }
+
   currentProcessIndex = 0;
   isProcessing = true;
   processingResults = [];
@@ -384,31 +410,39 @@ async function processNextFile() {
     return;
   }
 
-  const file = processingQueue[currentProcessIndex];
+  const item = processingQueue[currentProcessIndex];
   const commandIndex = parseInt(commandSelect.value, 10);
   const command = commands[commandIndex];
 
-  // Show which file is being processed
-  appendToConsole(`\n=== Processing: ${file.name} ===\n`, 'stdout');
+  // Check if this is a multi-file operation
+  if (item.isMultiFileOperation) {
+    await processMultiFileOperation(item, command);
+  } else {
+    // Normal single-file processing
+    const file = item;
 
-  // Build the command with placeholders replaced
-  const finalCommand = substitutePlaceholders(command.command, file);
+    // Show which file is being processed
+    appendToConsole(`\n=== Processing: ${file.name} ===\n`, 'stdout');
 
-  // Log the command for debugging
-  appendToConsole(`Command: ${finalCommand}\n\n`, 'stdout');
+    // Build the command with placeholders replaced
+    const finalCommand = substitutePlaceholders(command.command, file);
 
-  // Execute the command
-  const result = await window.api.executeCommand(finalCommand);
+    // Log the command for debugging
+    appendToConsole(`Command: ${finalCommand}\n\n`, 'stdout');
 
-  // Track result
-  processingResults.push({
-    file: file,
-    success: result.success,
-    exitCode: result.exitCode
-  });
+    // Execute the command
+    const result = await window.api.executeCommand(finalCommand);
 
-  if (!result.success) {
-    appendToConsole(`\n[FAILED] Exit code: ${result.exitCode}\n`, 'stderr');
+    // Track result
+    processingResults.push({
+      file: file,
+      success: result.success,
+      exitCode: result.exitCode
+    });
+
+    if (!result.success) {
+      appendToConsole(`\n[FAILED] Exit code: ${result.exitCode}\n`, 'stderr');
+    }
   }
 
   currentProcessIndex++;
@@ -417,6 +451,57 @@ async function processNextFile() {
   // Continue to next file (even if this one failed)
   if (isProcessing) {
     processNextFile();
+  }
+}
+
+async function processMultiFileOperation(operation, command) {
+  const files = operation.files;
+  const fileCount = files.length;
+
+  // Log operation start
+  appendToConsole(`\n=== Processing ${fileCount} files as batch ===\n`, 'stdout');
+  appendToConsole(`Operation: ${escapeHtml(command.name)}\n`, 'stdout');
+  appendToConsole(`Files: ${files.map(f => f.name).join(', ')}\n`, 'stdout');
+
+  // Create concat file with timestamp
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('.')[0];
+  const concatFilePath = await window.api.createConcatFile(files, timestamp);
+
+  if (!concatFilePath) {
+    appendToConsole('\n[FAILED] Could not create concat file\n', 'stderr');
+    processingResults.push({
+      file: { name: `Multi-file operation (${fileCount} files)` },
+      success: false,
+      exitCode: -1
+    });
+    return;
+  }
+
+  appendToConsole(`Concat file: ${concatFilePath}\n`, 'stdout');
+
+  // Build the command with multi-file placeholders replaced
+  const finalCommand = substituteMultiFilePlaceholders(command.command, concatFilePath, files);
+
+  // Log the command for debugging
+  appendToConsole(`Command: ${finalCommand}\n\n`, 'stdout');
+
+  // Execute the command
+  const result = await window.api.executeCommand(finalCommand);
+
+  // Clean up concat file
+  await window.api.deleteConcatFile(concatFilePath);
+
+  // Track result
+  processingResults.push({
+    file: { name: `Multi-file operation (${fileCount} files)` },
+    success: result.success,
+    exitCode: result.exitCode
+  });
+
+  if (result.success) {
+    appendToConsole(`\n[SUCCESS] Multi-file operation completed\n`, 'stdout');
+  } else {
+    appendToConsole(`\n[FAILED] Exit code: ${result.exitCode}\n`, 'stderr');
   }
 }
 
@@ -439,6 +524,38 @@ function substitutePlaceholders(commandTemplate, file) {
     .replace(/\{output_dir\}/g, outputDir)
     .replace(/\{name\}/g, nameWithoutExt)
     .replace(/\{ext\}/g, ext);
+}
+
+function isMultiFileCommand(commandTemplate) {
+  return commandTemplate.includes('{concat_file}') ||
+         commandTemplate.includes('{all_output}');
+}
+
+function substituteMultiFilePlaceholders(commandTemplate, concatFilePath, files) {
+  // Convert Windows backslashes to forward slashes
+  const concatPath = concatFilePath.replace(/\\/g, '/');
+  const outputDir = outputPath.replace(/\\/g, '/');
+
+  // Generate output filename with timestamp
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('.')[0];
+
+  // Determine extension from first file or default to .mp4
+  let outputExt = '.mp4';
+  if (files.length > 0) {
+    const firstFileName = files[0].name;
+    const lastDotIndex = firstFileName.lastIndexOf('.');
+    if (lastDotIndex > 0) {
+      outputExt = firstFileName.substring(lastDotIndex);
+    }
+  }
+
+  const outputFileName = `merged_${timestamp}${outputExt}`;
+
+  // Replace placeholders
+  return commandTemplate
+    .replace(/\{concat_file\}/g, concatPath)
+    .replace(/\{all_output\}/g, outputFileName)
+    .replace(/\{output_dir\}/g, outputDir);
 }
 
 // ============================================================
