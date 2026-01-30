@@ -5,6 +5,10 @@
       "command": "ffmpeg -v error -i \"{input}\" -f null -"
     },
     {
+      "name": "Convert to MP3",
+      "command": "ffmpeg -i \"{input}\" -vn -ar 44100 -ac 2 -b:a 192k \"{output_dir}/{name}.mp3\""
+    },
+    {
       "name": "Pixel vertical -> 720p",
       "command": "for /f \"delims=\" %a in ('ffprobe -v error -show_entries stream^=color_space -of default^=noprint_wrappers^=1:nokey^=1 \"{input}\"') do @if /I \"%a\"==\"bt2020nc\" (ffmpeg -i \"{input}\" -vf \"scale=-2:720,colorspace=all=bt709:itrc=bt2020-10:iprimaries=bt2020:ispace=bt2020nc,format=yuv420p\" \"{output_dir}/{name}.mp4\" -y) else (ffmpeg -i \"{input}\" -vf \"scale=-2:720,format=yuv420p\" \"{output_dir}/{name}.mp4\" -y)"
     },
