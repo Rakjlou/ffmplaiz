@@ -1,4 +1,5 @@
 // DOM Elements
+const appVersion = document.getElementById('appVersion');
 const ffmpegStatus = document.getElementById('ffmpegStatus');
 const errorBanner = document.getElementById('errorBanner');
 const mainContent = document.getElementById('mainContent');
@@ -8,7 +9,12 @@ const fileCount = document.getElementById('fileCount');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const commandSelect = document.getElementById('commandSelect');
 const commandError = document.getElementById('commandError');
-const refreshCommandsBtn = document.getElementById('refreshCommandsBtn');
+const editCommandsBtn = document.getElementById('editCommandsBtn');
+const commandEditorModal = document.getElementById('commandEditorModal');
+const commandEditorList = document.getElementById('commandEditorList');
+const addCommandBtn = document.getElementById('addCommandBtn');
+const cancelCommandEditorBtn = document.getElementById('cancelCommandEditorBtn');
+const saveCommandEditorBtn = document.getElementById('saveCommandEditorBtn');
 const outputFolder = document.getElementById('outputFolder');
 const browseOutputBtn = document.getElementById('browseOutputBtn');
 const startBtn = document.getElementById('startBtn');
@@ -37,15 +43,25 @@ let currentProcessIndex = 0;
 let consoleExpanded = false;
 let processingResults = []; // Track success/failure for each file
 let sessionLogPath = null; // Path to current session log
+let editingCommands = []; // Working copy during command editing
 
 // Initialize on page load
 async function init() {
+  await displayAppVersion();
   await checkFfmpegStatus();
   await loadCommands();
   await loadSettings();
   setupDragAndDrop();
   setupButtons();
   setupConsole();
+}
+
+// ============================================================
+// App Version
+// ============================================================
+async function displayAppVersion() {
+  const version = await window.api.getVersion();
+  appVersion.textContent = `v${version}`;
 }
 
 // ============================================================
@@ -98,6 +114,84 @@ function renderCommandDropdown() {
     `<option value="${index}">${escapeHtml(cmd.name)}</option>`
   ).join('');
   commandSelect.disabled = false;
+}
+
+// ============================================================
+// Command Editor Modal
+// ============================================================
+function openCommandEditor() {
+  // Deep copy commands array
+  editingCommands = commands.map(cmd => ({ ...cmd }));
+  renderCommandEditor();
+  commandEditorModal.classList.remove('hidden');
+}
+
+function closeCommandEditor() {
+  commandEditorModal.classList.add('hidden');
+  editingCommands = [];
+}
+
+function renderCommandEditor() {
+  if (editingCommands.length === 0) {
+    commandEditorList.innerHTML = '<div class="command-editor-empty">No commands. Click "Add Command" to create one.</div>';
+    return;
+  }
+
+  commandEditorList.innerHTML = editingCommands.map((cmd, index) => `
+    <div class="command-editor-item" data-index="${index}">
+      <div class="command-editor-fields">
+        <input type="text" class="command-name-input" data-index="${index}" data-field="name"
+               value="${escapeHtml(cmd.name)}" placeholder="Command name">
+        <textarea class="command-cmd-input" data-index="${index}" data-field="command"
+                  placeholder="FFmpeg command template">${escapeHtml(cmd.command)}</textarea>
+      </div>
+      <button class="command-remove-btn" data-index="${index}" title="Remove command">&times;</button>
+    </div>
+  `).join('');
+
+  // Add event listeners for input changes
+  commandEditorList.querySelectorAll('.command-name-input, .command-cmd-input').forEach(input => {
+    input.addEventListener('input', handleCommandFieldChange);
+  });
+
+  // Add event listeners for remove buttons
+  commandEditorList.querySelectorAll('.command-remove-btn').forEach(btn => {
+    btn.addEventListener('click', handleRemoveCommand);
+  });
+}
+
+function handleCommandFieldChange(e) {
+  const index = parseInt(e.target.dataset.index, 10);
+  const field = e.target.dataset.field;
+  editingCommands[index][field] = e.target.value;
+}
+
+function handleRemoveCommand(e) {
+  const index = parseInt(e.target.dataset.index, 10);
+  editingCommands.splice(index, 1);
+  renderCommandEditor();
+}
+
+function addNewCommand() {
+  editingCommands.push({ name: '', command: '' });
+  renderCommandEditor();
+  // Focus the new command's name input
+  const inputs = commandEditorList.querySelectorAll('.command-name-input');
+  if (inputs.length > 0) {
+    inputs[inputs.length - 1].focus();
+  }
+}
+
+async function saveCommandsFromEditor() {
+  // Filter out empty commands (both name and command empty)
+  const validCommands = editingCommands.filter(cmd => cmd.name.trim() !== '' || cmd.command.trim() !== '');
+
+  const result = await window.api.saveCommands(validCommands);
+  if (result.success) {
+    commands = validCommands;
+    renderCommandDropdown();
+    closeCommandEditor();
+  }
 }
 
 // ============================================================
@@ -611,7 +705,7 @@ function appendToConsole(text, type = 'stdout') {
 // ============================================================
 function setupButtons() {
   clearAllBtn.addEventListener('click', clearAllFiles);
-  refreshCommandsBtn.addEventListener('click', loadCommands);
+  editCommandsBtn.addEventListener('click', openCommandEditor);
   browseOutputBtn.addEventListener('click', selectOutputFolder);
   startBtn.addEventListener('click', startProcessing);
   stopBtn.addEventListener('click', stopProcessing);
@@ -622,6 +716,18 @@ function setupButtons() {
 
   // Update start button when command or output changes
   commandSelect.addEventListener('change', updateStartButton);
+
+  // Command editor modal buttons
+  addCommandBtn.addEventListener('click', addNewCommand);
+  cancelCommandEditorBtn.addEventListener('click', closeCommandEditor);
+  saveCommandEditorBtn.addEventListener('click', saveCommandsFromEditor);
+
+  // Close modal when clicking overlay background
+  commandEditorModal.addEventListener('click', (e) => {
+    if (e.target === commandEditorModal) {
+      closeCommandEditor();
+    }
+  });
 }
 
 async function openOutputFolder() {

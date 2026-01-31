@@ -101,6 +101,10 @@ ipcMain.handle('check-ffmpeg', async () => {
   return await checkFfmpeg();
 });
 
+ipcMain.handle('get-version', () => {
+  return app.getVersion();
+});
+
 ipcMain.handle('get-settings', () => {
   return loadConfig();
 });
@@ -113,6 +117,15 @@ ipcMain.handle('set-setting', (event, key, value) => {
 ipcMain.handle('load-commands', () => {
   return loadCommands();
 });
+
+function saveCommands(commandsArray) {
+  const commandsPath = getCommandsPath();
+  const data = { commands: commandsArray };
+  fs.writeFileSync(commandsPath, JSON.stringify(data, null, 2), 'utf-8');
+  return { success: true };
+}
+
+ipcMain.handle('save-commands', (event, commands) => saveCommands(commands));
 
 ipcMain.handle('select-output-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {

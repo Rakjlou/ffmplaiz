@@ -26,6 +26,16 @@ h2 {
   letter-spacing: 0.5px;
 }
 
+/* Version Badge */
+.version-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: normal;
+  background-color: #3c3c3c;
+  color: #808080;
+}
+
 /* Status Badge */
 .status-badge {
   font-size: 12px;
@@ -445,4 +455,141 @@ h2 {
 .result-buttons {
   display: flex;
   gap: 10px;
+}
+
+/* Command Editor Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #9cdcfe;
+  font-size: 16px;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #3c3c3c;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.command-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.command-editor-empty {
+  text-align: center;
+  color: #606060;
+  padding: 20px;
+  font-size: 13px;
+}
+
+.command-editor-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  background-color: #1e1e1e;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+}
+
+.command-editor-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.command-name-input {
+  padding: 8px 10px;
+  font-size: 13px;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #d4d4d4;
+}
+
+.command-name-input:focus {
+  outline: none;
+  border-color: #569cd6;
+}
+
+.command-cmd-input {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #d4d4d4;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.command-cmd-input:focus {
+  outline: none;
+  border-color: #569cd6;
+}
+
+.command-remove-btn {
+  background-color: transparent;
+  border: 1px solid #5a2d2d;
+  color: #cf6c6c;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.command-remove-btn:hover {
+  background-color: #5a2d2d;
+  color: #ff9999;
+}
+
+.add-command-btn {
+  margin-top: 12px;
 }

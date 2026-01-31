@@ -1,6 +1,9 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  // App info
+  getVersion: () => ipcRenderer.invoke('get-version'),
+
   // FFmpeg detection
   checkFfmpeg: () => ipcRenderer.invoke('check-ffmpeg'),
 
@@ -13,6 +16,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Commands
   loadCommands: () => ipcRenderer.invoke('load-commands'),
+  saveCommands: (commands) => ipcRenderer.invoke('save-commands', commands),
 
   // Output folder
   selectOutputFolder: () => ipcRenderer.invoke('select-output-folder'),
