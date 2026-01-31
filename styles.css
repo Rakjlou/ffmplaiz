@@ -571,6 +571,35 @@ h2 {
   border-color: #569cd6;
 }
 
+.command-editor-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.command-move-btn {
+  background-color: transparent;
+  border: 1px solid #3c3c3c;
+  color: #808080;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.command-move-btn:hover:not(:disabled) {
+  background-color: #3c3c3c;
+  color: #d4d4d4;
+}
+
+.command-move-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .command-remove-btn {
   background-color: transparent;
   border: 1px solid #5a2d2d;
@@ -582,7 +611,6 @@ h2 {
   font-size: 18px;
   line-height: 1;
   border-radius: 4px;
-  align-self: flex-start;
 }
 
 .command-remove-btn:hover {

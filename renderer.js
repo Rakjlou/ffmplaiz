@@ -145,7 +145,13 @@ function renderCommandEditor() {
         <textarea class="command-cmd-input" data-index="${index}" data-field="command"
                   placeholder="FFmpeg command template">${escapeHtml(cmd.command)}</textarea>
       </div>
-      <button class="command-remove-btn" data-index="${index}" title="Remove command">&times;</button>
+      <div class="command-editor-actions">
+        <button class="command-move-btn" data-index="${index}" data-dir="up"
+                title="Move up" ${index === 0 ? 'disabled' : ''}>↑</button>
+        <button class="command-move-btn" data-index="${index}" data-dir="down"
+                title="Move down" ${index === editingCommands.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="command-remove-btn" data-index="${index}" title="Remove command">&times;</button>
+      </div>
     </div>
   `).join('');
 
@@ -158,6 +164,11 @@ function renderCommandEditor() {
   commandEditorList.querySelectorAll('.command-remove-btn').forEach(btn => {
     btn.addEventListener('click', handleRemoveCommand);
   });
+
+  // Add event listeners for move buttons
+  commandEditorList.querySelectorAll('.command-move-btn').forEach(btn => {
+    btn.addEventListener('click', handleMoveCommand);
+  });
 }
 
 function handleCommandFieldChange(e) {
@@ -169,6 +180,20 @@ function handleCommandFieldChange(e) {
 function handleRemoveCommand(e) {
   const index = parseInt(e.target.dataset.index, 10);
   editingCommands.splice(index, 1);
+  renderCommandEditor();
+}
+
+function handleMoveCommand(e) {
+  const index = parseInt(e.target.dataset.index, 10);
+  const dir = e.target.dataset.dir;
+  const newIndex = dir === 'up' ? index - 1 : index + 1;
+
+  if (newIndex < 0 || newIndex >= editingCommands.length) return;
+
+  // Swap
+  [editingCommands[index], editingCommands[newIndex]] =
+    [editingCommands[newIndex], editingCommands[index]];
+
   renderCommandEditor();
 }
 
