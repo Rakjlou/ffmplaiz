@@ -1,6 +1,6 @@
 {
   "name": "ffmplaiz",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "ffmplaiz - A simple graphical interface for FFmpeg commands",
   "main": "main.js",
   "scripts": {
